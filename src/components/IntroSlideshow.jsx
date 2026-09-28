@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Heart, BookOpen, Sparkles } from 'lucide-react';
 import introSlides from '../data/introSlides.json';
 import { paperAudio } from '../utils/audio';
@@ -6,6 +6,7 @@ import { paperAudio } from '../utils/audio';
 export default function IntroSlideshow({ onStartFlipbook }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = introSlides.length;
+  const touchStartRef = useRef(null);
 
   const handleNext = () => {
     paperAudio.playPageTurn();
@@ -23,13 +24,43 @@ export default function IntroSlideshow({ onStartFlipbook }) {
     }
   };
 
+  const handleTouchStart = (e) => {
+    if (e.target.closest('button')) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now()
+    };
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    touchStartRef.current = null;
+
+    if (Math.abs(deltaX) > 35 && Math.abs(deltaX) > Math.abs(deltaY) && deltaTime < 600) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+  };
+
   const slide = introSlides[currentSlide];
   const isLast = currentSlide === totalSlides - 1;
 
   return (
     <div className="intro-slideshow-overlay">
       <div className="intro-card-wrap">
-        <div className="intro-card">
+        <div
+          className="intro-card"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {/* Top Badge */}
           <div className="intro-card-header">
             <span className="intro-badge">

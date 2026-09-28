@@ -120,8 +120,11 @@ export default function FlipBook3D({
       let planeHeight = visibleH * 0.70;
       let planeWidth = planeHeight * 0.8; // 4/5 = 0.8
 
-      // Adapt on mobile / narrow viewports
-      if (planeWidth > visibleW * 0.82) {
+      // Adapt on mobile / narrow viewports (portrait phones)
+      if (aspect < 0.75) {
+        planeWidth = Math.min(visibleW * 0.76, 2.3);
+        planeHeight = planeWidth / 0.8;
+      } else if (planeWidth > visibleW * 0.82) {
         planeWidth = visibleW * 0.72;
         planeHeight = planeWidth / 0.8;
       }
@@ -178,6 +181,8 @@ export default function FlipBook3D({
         video.loop = true;
         video.muted = true; // muted so it doesn't conflict with background music
         video.playsInline = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
         video.autoplay = true;
         video.play().catch(() => {});
         videoEl = video;
